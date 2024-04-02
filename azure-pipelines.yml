@@ -1,0 +1,31 @@
+# Maven
+# Build your Java project and run tests with Apache Maven.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    goals: 'package'
+
+- task: AzureFunctionApp@2
+  inputs:
+    connectedServiceNameARM: 'AKF Bank Playground(1)(b2787007-20ba-4ac3-88d4-6fe486507298)'
+    appType: 'functionAppLinux'
+    appName: 'akf-sample-azure-function'
+    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    runtimeStack: 'JAVA|21'
+    deploymentMethod: 'auto'
